@@ -7,13 +7,13 @@ from langchain.llms import OpenAI
 from langchain.chains import RetrievalQA
 import gradio as gr
 from gradio.themes.base import Base
-import Key_param 
 import tensorflow as tf
 from transformers import TFBertModel, BertTokenizer
 from Backend.Rules import NFLRule, remove_special_characters,to_lowercase,remove_stopwords, tokenize_with_nltk,CleanText
 from Model.QASystemModel import QAModel
+from Backend.Main import client
 
+from Frontend.Main import question_answering_app
 
-NflRules = NFLRule()
-documents=CleanText(NflRules)
+question_answering_app()
 

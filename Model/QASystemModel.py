@@ -1,10 +1,11 @@
 # libraries 
 
-from transformers import TFBertModel, BertTokenizer
+from transformers import DistilBertTokenizer, TFDistilBertForQuestionAnswering
 def QAModel():
-    model_name = 'bert-base-uncased'  
-    bert_model = TFBertModel.from_pretrained(model_name)
-    tokenizer = BertTokenizer.from_pretrained(model_name)
-    return model_name, bert_model, tokenizer
+    model_name = "distilbert-base-cased-distilled-squad"
+    tokenizer = DistilBertTokenizer.from_pretrained(model_name)
+    model = TFDistilBertForQuestionAnswering.from_pretrained(model_name)
+    return model_name, tokenizer, model
+
 
 
