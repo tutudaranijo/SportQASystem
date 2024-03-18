@@ -8,4 +8,4 @@ def QAModel():
     return model_name, tokenizer, model
 
 
-
+model=QAModel()

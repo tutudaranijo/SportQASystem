@@ -12,8 +12,3 @@ from transformers import TFBertModel, BertTokenizer
 #from Backend.Rules import NFLRule, remove_special_characters,to_lowercase,remove_stopwords, tokenize_with_nltk,CleanText
 from Model.QASystemModel import QAModel
 #from Backend.Main import client
-
-from Frontend.Main import question_answering_app
-
-question_answering_app()
-

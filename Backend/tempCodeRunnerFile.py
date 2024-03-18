@@ -1,9 +1,11 @@
-def query_data(query):
-    docs = vector_search.similarity_search(query, k=1)
-    as_output=docs[0].page_content
-    llm= model
-    retriever =vector_search.as_retriever()
-    qa=RetrievalQA.from_chain_type(llm,chain_type="stuff", retriever=retriever)
-    retriever_output = qa.run(query)
-
-    return as_output, retriever_output
+from key import MONGOURI, openAI
+from Rules import NFLRule, parse_rules 
+import pymongo
+from langchain_community.vectorstores import MongoDBAtlasVectorSearch
+from langchain.chains import RetrievalQA
+from gensim.models import Word2Vec
+import os
+from langchain_community.document_loaders import DirectoryLoader
+from langchain.embeddings.openai import OpenAIEmbeddings
+from nltk.tokenize import sent_tokenize
+import numpy as np

@@ -1,10 +1,14 @@
 {
     "cSpell.words": [
+        "Distil",
+        "distilbert",
         "gradio",
         "MONGOURI",
         "MONGOURIPA",
+        "pymongo",
         "sportrules",
         "stopwords",
-        "tutudaranijo"
+        "tutudaranijo",
+        "vectorstores"
     ]
 }
