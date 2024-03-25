@@ -1,13 +1,21 @@
 {
     "cSpell.words": [
+        "deepset",
         "Distil",
         "distilbert",
         "gradio",
+        "hugembed",
+        "llms",
+        "lowertxt",
+        "mongoqa",
         "MONGOURI",
         "MONGOURIPA",
+        "pydantic",
         "pymongo",
+        "querydata",
         "sportrules",
         "stopwords",
+        "stopwwordtxt",
         "tutudaranijo",
         "vectorstores"
     ]

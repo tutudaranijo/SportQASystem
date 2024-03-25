@@ -1,1 +1,3 @@
-from Model.QASystemModel import QAModel
+
+querydata=query_data()
+website(querydata)

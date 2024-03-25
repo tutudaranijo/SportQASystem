@@ -3,7 +3,16 @@ from google.cloud import storage
 import re
 import nltk
 from nltk.corpus import stopwords
-nltk.download('stopwords')
+import sys
+import os
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from key import openAI
+# Add the project directory to the Python path
+
+from key import hugembed, embedding_url
+import requests
+#nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 from nltk.tokenize import sent_tokenize
 def NFLRule():
@@ -23,6 +32,21 @@ def NFLRule():
     # Download the content of the file
     content = blob.download_as_string()
     return content
+
+def generate_embedding(text:str) -> list[float]:
+    response =requests.post(
+        embedding_url,
+        headers ={"Authorization": f"Bearer {hugembed}"},
+        json ={"inputs": text} )
+
+    if response.status_code != 200:
+        raise ValueError(f"Request failed due to status code {response.status_code}: {response.text}")
+    return response.json()
+
+embeddings = OpenAIEmbeddings(
+    api_key=openAI
+)
+
 def parse_rules(content):
     # Assuming content is bytes-like
     content = content.decode('utf-8')  # Decode to a string
@@ -37,11 +61,14 @@ def parse_rules(content):
         if line.startswith('RULE'):
             # Start of a new rule
             if current_rule is not None:
-                current_rule['Content'] = ' '.join(current_content)
+                current_rule['page_content'] = ' '.join(current_content)
+                # Generate embeddings for the content of the current rule
+                current_rule['Embeddings'] = embeddings.embed_query(current_rule['page_content'])
                 rules.append(current_rule)
                 current_content = []
+
             rule_name = line.split(' ', 1)[1]
-            current_rule = {'Index': len(rules) + 1, 'Rule': rule_name, 'Content': ''}
+            current_rule = {'Index': len(rules) + 1, 'Rule': rule_name, 'page_content': ''}
 
         else:
             # Accumulate words until the next rule
@@ -49,10 +76,13 @@ def parse_rules(content):
 
     # Add the content of the last rule
     if current_rule is not None:
-        current_rule['Content'] = ' '.join(current_content)
+        current_rule['page_content'] = ' '.join(current_content)
+        # Generate embeddings for the content of the last rule
+        current_rule['Embeddings'] = embeddings.embed_query(current_rule['page_content'])
         rules.append(current_rule)
 
     return rules
+
 
 
 
