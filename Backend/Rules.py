@@ -7,7 +7,7 @@ import sys
 import os
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_openai import OpenAIEmbeddings
-from key import openAI
+from key import openAI,googledeet
 # Add the project directory to the Python path
 
 from key import hugembed, embedding_url
@@ -17,7 +17,7 @@ stop_words = set(stopwords.words('english'))
 from nltk.tokenize import sent_tokenize
 def NFLRule():
     # Set the path to your service account key file
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/tutudaranijo/Downloads/Github_projects/Python_Project/FootballQASystem/Data/elaborate-howl-415101-b0768e28f100.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = f"{googledeet}"
 
 
     # Initialize a client
