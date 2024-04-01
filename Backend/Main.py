@@ -1,19 +1,24 @@
-from key import MONGOURI, openAI, hugembed
-from Rules import NFLRule, parse_rules 
+from Backend.key import MONGOURI, openAI, hugembed
+from Backend.Rules import NFLRule, parse_rules 
 import pymongo
 from langchain_mongodb import MongoDBAtlasVectorSearch
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain.storage import InMemoryStore
-from langchain_community.document_loaders import TextLoader
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import MongoDBAtlasVectorSearch
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import numpy as np
 import requests
 from langchain.retrievers import ParentDocumentRetriever
+import pypdf
+from langchain_community.document_loaders import PyPDFLoader
 
+class DocumentWrapper:
+    def __init__(self, content, metadata = None):
+        self.page_content = content
+        self.metadata = metadata if metadata is not None else {}
 # Function to check if the collection exists and has documents
 def check_collection(client, db_name, collection_name):
     db = client[db_name]
@@ -31,62 +36,72 @@ def check_collection(client, db_name, collection_name):
 
 # Initialize MongoDB client
 client = pymongo.MongoClient(MONGOURI)
+DB_NAME = "langchain_db"
+COLLECTION_NAME = "test"
+ATLAS_VECTOR_SEARCH_INDEX_NAME = "index_name"
 
+MONGODB_COLLECTION = client[DB_NAME][COLLECTION_NAME]
+loader = PyPDFLoader("https://arxiv.org/pdf/2303.08774.pdf")
+data = loader.load()
+embedding=OpenAIEmbeddings(disallowed_special=(), api_key=openAI)
+query_sentence= "What were the compute requirements for training GPT 4"
 # Check if NFLRules collection has documents
-if not check_collection(client, 'QA_System', 'NFLRules'):
-    # Load and parse the NFL rules
-    content = NFLRule()
-    parsed_rules = parse_rules(content)
+if check_collection(client, 'langchain_db', 'test'):
+    # If the test collection exists, run the vector search
+    vector_search = MongoDBAtlasVectorSearch.from_connection_string(
+        MONGOURI,
+        DB_NAME + "." + COLLECTION_NAME,
+        OpenAIEmbeddings(disallowed_special=(), api_key=openAI),
+        index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME,
+    )
+#    db = client['langchain_db']
+#    collection = db['test']
+#    query = query_sentence
+#
+#    vectorstore = MongoDBAtlasVectorSearch(collection, embedding)
+#
+#    docs = vectorstore.similarity_search(query, K=1)
+#    as_ouput= docs[0].page_content
+#    print(as_ouput)
 
-    # Insert parsed rules into the NFLRules collection
-    db = client['QA_System']
-    collection = db['NFLRules']
-    results = collection.insert_many(parsed_rules)
-    print(f"Inserted {len(results.inserted_ids)} documents into NFLRules collection.")
-
-# Retrieve documents from NFLRules collection
-collection = client['QA_System']['NFLRules']
-query = {"Index": {"$exists": True}}  
-data = []
-try:
-    documents = collection.find(query)
-    for document in documents:
-        data.append(document['page_content'])
-    if not data:
-        print("No documents found with the specified query.")
-except Exception as e:
-    print(f"An error occurred while retrieving documents: {e}")
-
-# Initialize embeddings
-embeddings = OpenAIEmbeddings(
-    api_key=openAI
-)
-
-# Initialize MongoDB Atlas Vector Search
-namespace = "QA_System.NFLRules"
-vectorstore = MongoDBAtlasVectorSearch.from_connection_string(
-    connection_string=MONGOURI,
-    embedding=embeddings,
-    namespace=namespace
-)
-
-# Additional components for document retrieval
-child_splitter = RecursiveCharacterTextSplitter(chunk_size=400)
-store = InMemoryStore()
-retriever = ParentDocumentRetriever(
-    vectorstore=vectorstore,
-    docstore=store,
-    child_splitter=child_splitter
-)
-
-# Add documents to retriever (assuming data has the documents)
-retriever.add_documents(documents)
-
-# Perform a test similarity search (adjust as needed)
-test_query = "touchdown"  # Replace with a relevant query
-sub_docs = vectorstore.similarity_search(query=test_query,k=1)
-
-if sub_docs:
-    print(sub_docs[0].page_content)
 else:
-    print("No similar documents found.")
+    # If the test collection does not exist, load, parse, and insert the NFL rules
+    content = NFLRule()
+    documents = parse_rules(content)
+    page_contents = [DocumentWrapper(doc['page_content']) for doc in documents]
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
+    docs = text_splitter.split_documents(data)
+
+    # Insert the documents in MongoDB Atlas with their embedding
+    vector_search = MongoDBAtlasVectorSearch.from_documents(
+        documents=docs,
+        embedding=OpenAIEmbeddings(disallowed_special=(), api_key=openAI),
+        collection=MONGODB_COLLECTION,
+        index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME,
+    )
+
+
+    
+ #   db = client['langchain_db']
+ #   collection = db['test']
+ #   query = query_sentence
+#
+ #   vectorstore = MongoDBAtlasVectorSearch(collection, embedding)
+#
+ #   docs = vectorstore.similarity_search(query, K=1)
+ #   as_ouput= docs[0].page_content
+ #   print(as_ouput)
+#    results = collection.aggregate([
+#  {
+#    "$vectorSearch": {
+#      "index": "vector_index",
+#      "path": "embedding",
+#      "queryVector": embedding(query),
+#      "numCandidates": 100,
+#      "limit": 4
+#    }
+#  }
+#])
+#    for document in results:
+#        print(document) 
+#

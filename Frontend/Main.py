@@ -10,6 +10,7 @@ from langchain.storage import InMemoryStore
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_directory)
@@ -18,22 +19,21 @@ from Model.QASystemModel import QAModel
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from Backend.Rules import generate_embedding
 from Backend.Main import data
+from Backend.key import openAI
 from transformers import DPRContextEncoderTokenizer, DPRQuestionEncoderTokenizer, DPRReaderTokenizer, DPRQuestionEncoder
-embeddings = HuggingFaceInferenceAPIEmbeddings(
-    api_key=hugembed, model_name="sentence-transformers/all-MiniLM-l6-v2"
-)
+embedding=OpenAIEmbeddings(disallowed_special=(), api_key=openAI)
 client = pymongo.MongoClient(MONGOURI)
-dbName='QA_System'
-collectionName="NFLRules"
+dbName='langchain_db'
+collectionName="SportsRules"
 collection=client[dbName][collectionName]
 
-vector_search= MongoDBAtlasVectorSearch(collection,embeddings)
+vector_search= MongoDBAtlasVectorSearch(collection,embedding)
 def query_data(query):
     try:
         docs = vector_search.similarity_search(query, k=1)
         if docs:  
             as_output = docs[0].page_content   
-            llm = QAModel(query)
+            llm=OpenAI(api_key=openAI, temperature=0)
             retriever = vector_search.as_retriever()
             qa = RetrievalQA.from_chain_type(llm, chain_type="stuff", retriever=retriever)
             retriever_output = qa.run(query)

@@ -7,10 +7,10 @@ import sys
 import os
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_openai import OpenAIEmbeddings
-from key import openAI,googledeet
+from Backend.key import openAI,googledeet
 # Add the project directory to the Python path
 
-from key import hugembed, embedding_url
+from Backend.key import hugembed, embedding_url
 import requests
 #nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
@@ -61,10 +61,12 @@ def parse_rules(content):
         if line.startswith('RULE'):
             # Start of a new rule
             if current_rule is not None:
-                current_rule['page_content'] = ' '.join(current_content)
-                # Generate embeddings for the content of the current rule
-                current_rule['Embeddings'] = embeddings.embed_query(current_rule['page_content'])
-                rules.append(current_rule)
+                # Make sure there is some content before adding the rule
+                if current_content:
+                    current_rule['page_content'] = ' '.join(current_content)
+                    # Generate embeddings for the content of the current rule
+                    current_rule['Embeddings'] = embeddings.embed_query(current_rule['page_content'])
+                    rules.append(current_rule)
                 current_content = []
 
             rule_name = line.split(' ', 1)[1]
@@ -75,13 +77,14 @@ def parse_rules(content):
             current_content.append(line)
 
     # Add the content of the last rule
-    if current_rule is not None:
+    if current_rule and current_content:  # Check if there is a rule and it has content
         current_rule['page_content'] = ' '.join(current_content)
         # Generate embeddings for the content of the last rule
         current_rule['Embeddings'] = embeddings.embed_query(current_rule['page_content'])
         rules.append(current_rule)
 
     return rules
+
 
 
 
