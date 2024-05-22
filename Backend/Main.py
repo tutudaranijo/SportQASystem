@@ -13,14 +13,14 @@ import numpy as np
 import requests
 from langchain.retrievers import ParentDocumentRetriever
 import pypdf
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoaders
 
 class DocumentWrapper:
     def __init__(self, content, metadata = None):
         self.page_content = content
         self.metadata = metadata if metadata is not None else {}
 # Function to check if the collection exists and has documents
-def check_collection(client, db_name, collection_name):
+def check_collection(client :str, db_name:str, collection_name:str):
     db = client[db_name]
     if collection_name in db.list_collection_names():
         collection = db[collection_name]

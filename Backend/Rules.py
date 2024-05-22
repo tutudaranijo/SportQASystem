@@ -15,23 +15,42 @@ import requests
 #nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 from nltk.tokenize import sent_tokenize
-def NFLRule():
-    # Set the path to your service account key file
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = f"{googledeet}"
+class Rulebooks:
+# Set the path to your service account key file
+    googledeet = "path/to/your/service/account/key/file.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = googledeet
 
+    @classmethod
+    def _load_rules(cls, sport):
+        # Initialize a client
+        client = storage.Client()
 
-    # Initialize a client
-    client = storage.Client()
+        # Get the bucket
+        bucket = client.get_bucket('sportrules')
 
-    # Get the bucket
-    bucket = client.get_bucket('sportrules')
+        if sport == 'NFL':
+            blob_name = 'NFLRuleBook2023.txt'
+        elif sport == 'NBA':
+            blob_name = 'NBARuleBook2023.txt'
+        else:
+            return "Sport not supported."
 
-    # Get the blob (file) you want to pull
-    blob = bucket.get_blob('NFLRuleBook2023.txt')
+        # Get the blob (file) you want to pull
+        blob = bucket.get_blob(blob_name)
 
-    # Download the content of the file
-    content = blob.download_as_string()
-    return content
+        # Download the content of the file
+        content = blob.download_as_string()
+
+        return content.decode('utf-8')
+
+    def NFLRule(sport: str) -> str:
+        return sport._load_rules('NFL')
+        
+    def NBARule(sport : str) -> str:
+        
+        return sport._load_rules('NBA')
+            
+
 
 def generate_embedding(text:str) -> list[float]:
     response =requests.post(
@@ -87,28 +106,29 @@ def parse_rules(content):
 
 
 
+class CleanText():
+
+    def remove_special_characters(text):
+        text = text.decode("utf-8")  # Decode bytes-like object to string
+        return re.sub(r'[^\w\s.]', '', text)
+    def to_lowercase(text):
+        return text.lower()
+
+    def remove_stopwords(text):
+        tokens = text.split()
+        filtered_tokens = [word for word in tokens if word not in stop_words]
+        return ' '.join(filtered_tokens)
 
 
-def remove_special_characters(text):
-    text = text.decode("utf-8")  # Decode bytes-like object to string
-    return re.sub(r'[^\w\s.]', '', text)
-def to_lowercase(text):
-    return text.lower()
-
-def remove_stopwords(text):
-    tokens = text.split()
-    filtered_tokens = [word for word in tokens if word not in stop_words]
-    return ' '.join(filtered_tokens)
-
-
-def tokenize_with_nltk(text):
-    return sent_tokenize(text)
-
-def CleanText(txt):
-    lowertxt=to_lowercase(txt)
-    rms=remove_special_characters(lowertxt)
-    stopwwordtxt = remove_stopwords(rms)
-    token= tokenize_with_nltk(stopwwordtxt)
-    return token
-                     
+    def tokenize_with_nltk(text):
+        return sent_tokenize(text)
+    
+    @classmethod
+    def CleanText(txt):
+        lowertxt=CleanText.to_lowercase(txt)
+        rms=CleanText.remove_special_characters(lowertxt)
+        stopwwordtxt = CleanText.remove_stopwords(rms)
+        token= CleanText.tokenize_with_nltk(stopwwordtxt)
+        return token
+                        
 
