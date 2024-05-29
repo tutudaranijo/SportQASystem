@@ -1,10 +1,7 @@
 import os
 from google.cloud import storage
 import re
-import nltk
 from nltk.corpus import stopwords
-import sys
-import os
 from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from Backend.key import openAI,googledeet
