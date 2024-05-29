@@ -1,4 +1,9 @@
-from Backend.key import MONGOURI, openAI, hugembed
+
+import os
+
+MONGOURI = os.environ.get('MONGOURI')
+openAI = os.environ.get('openAI')
+hugembed = os.environ.get('hugembed')
 from Backend.Rules import NFLRule, parse_rules 
 import pymongo
 from langchain_mongodb import MongoDBAtlasVectorSearch
