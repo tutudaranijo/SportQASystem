@@ -2,19 +2,20 @@ import os
 from google.cloud import storage
 import re
 from nltk.corpus import stopwords
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_openai import OpenAIEmbeddings
-from Backend.key import openAI,googledeet
-# Add the project directory to the Python path
-
-from Backend.key import hugembed, embedding_url
 import requests
-#nltk.download('stopwords')
-stop_words = set(stopwords.words('english'))
 from nltk.tokenize import sent_tokenize
+stop_words = set(stopwords.words('english'))
+
+MONGOURI = os.environ.get('MONGOURI')
+openAI = os.environ.get('openAI')
+hugembed = os.environ.get('hugembed')
+embedding_url = os.environ.get('embedding_url')
+googledeet = os.environ.get('googledeet')
+
+
 class Rulebooks:
-# Set the path to your service account key file
-    googledeet = "path/to/your/service/account/key/file.json"
+
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = googledeet
 
     @classmethod
@@ -63,7 +64,7 @@ embeddings = OpenAIEmbeddings(
     api_key=openAI
 )
 
-def parse_rules(content):
+def parse_rules(content) -> str:
     # Assuming content is bytes-like
     content = content.decode('utf-8')  # Decode to a string
 
@@ -105,23 +106,23 @@ def parse_rules(content):
 
 class CleanText():
 
-    def remove_special_characters(text):
+    def remove_special_characters(text:str):
         text = text.decode("utf-8")  # Decode bytes-like object to string
         return re.sub(r'[^\w\s.]', '', text)
-    def to_lowercase(text):
+    def to_lowercase(text:str):
         return text.lower()
 
-    def remove_stopwords(text):
+    def remove_stopwords(text :str ):
         tokens = text.split()
         filtered_tokens = [word for word in tokens if word not in stop_words]
         return ' '.join(filtered_tokens)
 
 
-    def tokenize_with_nltk(text):
+    def tokenize_with_nltk(text:str):
         return sent_tokenize(text)
     
     @classmethod
-    def CleanText(txt):
+    def CleanText(txt: str):
         lowertxt=CleanText.to_lowercase(txt)
         rms=CleanText.remove_special_characters(lowertxt)
         stopwwordtxt = CleanText.remove_stopwords(rms)

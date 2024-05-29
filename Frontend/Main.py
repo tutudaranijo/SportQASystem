@@ -16,7 +16,6 @@ project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."
 sys.path.insert(0, project_directory)
 from Backend.key import MONGOURI, hugembed
 from Model.QASystemModel import QAModel
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from Backend.Rules import generate_embedding
 from Backend.Main import data
 from Backend.key import openAI
